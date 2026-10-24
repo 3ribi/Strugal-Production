@@ -1,0 +1,10 @@
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+
+#     RewriteRule ^\.env - [F,L]
+#     RewriteRule ^composer\.(json|lock) - [F,L]
+#     RewriteRule ^package(-lock)?\.json - [F,L]
+
+#     RewriteRule ^$ public/ [L]
+#     RewriteRule ^(.*)$ public/$1 [L]
+# </IfModule>

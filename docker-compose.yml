@@ -1,0 +1,69 @@
+name: strugal
+
+services:
+  strugal:
+    build: .
+    image: strugal-production:latest
+    container_name: strugal
+    restart: unless-stopped
+    ports:
+      - "8088:80"
+    environment:
+      APP_NAME: "Strugal Production"
+      APP_URL: "prod.amine.app"   # adresse que vous tapez dans le navigateur
+      APP_LOCALE: fr
+      APP_FALLBACK_LOCALE: fr
+      APP_TIMEZONE: UTC                      # ex. Africa/Casablanca pour l'heure locale
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /data/database.sqlite
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: sync
+      # Premier administrateur (créé seulement si aucun admin n'existe) :
+      ADMIN_NAME: "Administrateur"
+      ADMIN_EMAIL: "admin@example.com"
+      ADMIN_PASSWORD: "amine"
+    volumes:
+      - /DATA/AppData/strugal/data:/data
+      - /DATA/AppData/strugal/storage:/var/www/html/storage
+    x-casaos:
+      envs:
+        - container: ADMIN_EMAIL
+          description:
+            en_us: E-mail of the first administrator
+        - container: ADMIN_PASSWORD
+          description:
+            en_us: Password of the first administrator
+        - container: APP_URL
+          description:
+            en_us: Address used to open the app (http://IP:8088)
+      ports:
+        - container: "80"
+          description:
+            en_us: Web interface
+      volumes:
+        - container: /data
+          description:
+            en_us: Database and application key
+        - container: /var/www/html/storage
+          description:
+            en_us: Logs and Excel template
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: strugal
+  author: Strugal
+  category: Productivity
+  title:
+    en_us: Strugal Production
+    fr_fr: Strugal Production
+  tagline:
+    en_us: Production reports dashboard
+    fr_fr: Tableau de bord des rapports de production
+  description:
+    en_us: Laravel app for production reports, rejection tracking and Excel exports.
+    fr_fr: Application Laravel de rapports de production, suivi des rejets et exports Excel.
+  port_map: "8088"
+  index: /
