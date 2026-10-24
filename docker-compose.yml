@@ -13,7 +13,7 @@ services:
       APP_URL: "prod.amine.app"   # adresse que vous tapez dans le navigateur
       APP_LOCALE: fr
       APP_FALLBACK_LOCALE: fr
-      APP_TIMEZONE: UTC                      # ex. Africa/Casablanca pour l'heure locale
+      APP_TIMEZONE: Africa/Casablanca        # fuseau horaire de l'application
       DB_CONNECTION: sqlite
       DB_DATABASE: /data/database.sqlite
       SESSION_DRIVER: database

@@ -24,8 +24,8 @@ class InstallApp extends Command
             return self::SUCCESS;
         }
 
-        $email = env('ADMIN_EMAIL') ?: 'admin@example.com';
-        $password = env('ADMIN_PASSWORD');
+        $email = config('install.admin_email') ?: 'admin@example.com';
+        $password = config('install.admin_password');
         $generated = false;
 
         if (! $password) {
@@ -34,7 +34,7 @@ class InstallApp extends Command
         }
 
         User::create([
-            'name' => env('ADMIN_NAME') ?: 'Administrateur',
+            'name' => config('install.admin_name') ?: 'Administrateur',
             'email' => $email,
             'password' => $password,
             'role' => 'admin',

@@ -3,6 +3,7 @@
 namespace App\Livewire\Departments\Laquage;
 
 use App\Models\LaquageReport;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -54,12 +55,15 @@ class Reports extends Component
         $user = Auth::user();
         abort_unless($user->canAccessDepartment('laquage'), 403);
 
-        LaquageReport::query()->visibleTo($user)->findOrFail($id)->delete();
+        $report = LaquageReport::query()->visibleTo($user)->findOrFail($id);
+        abort_unless($report->canBeDeletedBy($user), 403);
+
+        $report->delete();
 
         session()->flash('success', 'Le rapport a été supprimé.');
     }
 
-    public function render()
+    public function render(): View
     {
         $user = Auth::user();
         $search = trim($this->search);
@@ -86,7 +90,7 @@ class Reports extends Component
 
         return view('components.departments.laquage.reports', [
             'reports' => $reports,
-            'isAdmin' => $user->isAdmin(),
+            'authUser' => $user,
             'hasFilters' => $search !== '' || $this->dateFrom !== '' || $this->dateTo !== '',
         ]);
     }

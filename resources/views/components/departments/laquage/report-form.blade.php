@@ -1,40 +1,13 @@
 @php
-    $headerFields = [
-        'report_date' => ['Date du rapport', 'date'],
-        'line' => ['Ligne de laquage', 'text'],
-        'work_period' => ['Période de travail', 'text'],
-        'operators' => ['Opérateurs', 'text'],
-        'micrometer_check' => ['Vérification micromètre', 'text'],
-        'brillometer' => ['Brillomètre', 'number'],
-        'phase' => ['Phase', 'text'],
-        'furnace_temperature' => ['Température du four (°C)', 'number'],
-    ];
+    use App\Support\LaquageFields;
 
-    $rowFields = [
-        'source_cart' => ['Nº CHAR. SOURCE', 'text'],
-        'order_number' => ['COMMANDE', 'text'],
-        'of_number' => ['O.F', 'text'],
-        'reference' => ['RÉFÉRENCE', 'text'],
-        'bars_count' => ['Nº BARRES', 'number'],
-        'cart_number' => ['Nº CHAR', 'text'],
-        'rejected' => ['REJET', 'number'],
-        'thickness_min' => ['MIN.', 'number'],
-        'thickness_max' => ['MAX.', 'number'],
-        'color' => ['COULEUR', 'text'],
-        'supplier' => ['FOURNISSEUR', 'text'],
-        'category' => ['CAT.', 'text'],
-        'brilliance_average' => ['MOYENNE', 'number'],
-        'aspect' => ['ASPECT', 'text'],
-    ];
-
-    $sections = [
-        'Identification' => ['source_cart', 'order_number', 'of_number', 'reference', 'cart_number'],
-        'Quantités' => ['bars_count', 'rejected'],
-        'Mesures' => ['thickness_min', 'thickness_max', 'brilliance_average'],
-        'Aspect' => ['color', 'supplier', 'category', 'aspect'],
-    ];
-
-    $decimalFields = ['thickness_min', 'thickness_max', 'brilliance_average'];
+    // [label, input type] per field, all coming from LaquageFields (single source of truth).
+    $headerFields = collect(LaquageFields::header())
+        ->map(fn ($f) => [$f['label'].(isset($f['unit']) ? ' ('.$f['unit'].')' : ''), $f['type']])
+        ->all();
+    $rowFields = collect(LaquageFields::row())->map(fn ($f) => [$f['label'], $f['type']])->all();
+    $sections = LaquageFields::sections();
+    $decimalFields = LaquageFields::decimalKeys();
     $isEditing = $editingLineId !== null;
     $title = $reportId ? 'Modifier le rapport' : 'Nouveau rapport Laquage';
 @endphp
@@ -48,7 +21,7 @@
     >
         <x-slot:actions>
             <flux:button variant="ghost" icon="arrow-left" :href="route('departments.laquage.index')" wire:navigate>
-                Mes rapports
+                Rapports
             </flux:button>
             @if ($reportId)
                 <flux:button icon="arrow-down-tray" :href="route('departments.laquage.export', $reportId)">

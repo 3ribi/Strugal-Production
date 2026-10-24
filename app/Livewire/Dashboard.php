@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\LaquageReport;
 use App\Models\LaquageReportLine;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -13,7 +14,7 @@ use Livewire\Component;
 #[Title('Tableau de bord')]
 class Dashboard extends Component
 {
-    public function render()
+    public function render(): View
     {
         $user = Auth::user();
         $hasLaquage = $user->canAccessDepartment('laquage');
@@ -34,7 +35,7 @@ class Dashboard extends Component
 
             $days = collect(range(13, 0))->map(fn (int $i) => now()->subDays($i)->startOfDay());
             $perDay = $base()
-                ->whereDate('report_date', '>=', $days->first()->toDateString())
+                ->whereDate('report_date', '>=', now()->subDays(13)->toDateString())
                 ->get(['id', 'report_date'])
                 ->countBy(fn (LaquageReport $report) => $report->report_date->toDateString());
 

@@ -18,6 +18,17 @@ trait PasswordValidationRules
     }
 
     /**
+     * Rules for a (temporary) password an administrator types in for someone else.
+     * Used when creating a user and when resetting a forgotten password.
+     *
+     * @return array<int, string>
+     */
+    protected function assignedPasswordRules(bool $required = true): array
+    {
+        return [$required ? 'required' : 'nullable', 'string', 'min:12'];
+    }
+
+    /**
      * Get the validation rules used to validate the current password.
      *
      * @return array<int, Password|ValidationRule|array<mixed>|string>

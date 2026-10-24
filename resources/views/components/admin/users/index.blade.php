@@ -68,7 +68,7 @@
                                         title="Supprimer"
                                         class="text-error-600! hover:text-error-700!"
                                         wire:click="delete({{ $user->id }})"
-                                        wire:confirm="Voulez-vous vraiment supprimer cet utilisateur ?"
+                                        wire:confirm="Voulez-vous vraiment supprimer cet utilisateur ? Ses rapports seront conservés."
                                     />
                                 @endif
                             </td>

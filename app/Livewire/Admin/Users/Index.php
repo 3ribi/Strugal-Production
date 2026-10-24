@@ -2,10 +2,9 @@
 
 namespace App\Livewire\Admin\Users;
 
-use App\Models\Department;
+use App\Models\LaquageReport;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -15,14 +14,6 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     use WithPagination;
-
-    public string $name = '';
-    public string $email = '';
-    public string $password = '';
-    public string $role = 'department';
-    public ?string $department_id = null;
-
-    public ?int $editingId = null;
 
     #[Url(as: 'q', except: '')]
     public string $search = '';
@@ -37,111 +28,31 @@ class Index extends Component
         abort_unless(auth()->user()->isAdmin(), 403);
     }
 
-    protected function rules(): array
-    {
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($this->editingId),
-            ],
-            'role' => ['required', Rule::in(['admin', 'department'])],
-            'department_id' => [
-                Rule::requiredIf($this->role === 'department'),
-                'nullable',
-                'integer',
-                'exists:departments,id',
-            ],
-            'password' => [
-                $this->editingId ? 'nullable' : 'required',
-                'string',
-                'min:8',
-            ],
-        ];
-    }
-
-    public function save(): void
-    {
-        abort_unless(auth()->user()->isAdmin(), 403);
-
-        $validated = $this->validate();
-
-        $data = [
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'role' => $validated['role'],
-            'department_id' => $validated['role'] === 'department'
-                ? $validated['department_id']
-                : null,
-        ];
-
-        if ($this->password !== '') {
-            $data['password'] = Hash::make($this->password);
-        }
-
-        if ($this->editingId) {
-            User::findOrFail($this->editingId)->update($data);
-        } else {
-            User::create($data);
-        }
-
-        $this->resetForm();
-        session()->flash('success', 'Utilisateur enregistré avec succès.');
-    }
-
-    public function edit(int $id): void
-    {
-        abort_unless(auth()->user()->isAdmin(), 403);
-
-        $user = User::findOrFail($id);
-
-        $this->editingId = $user->id;
-        $this->name = $user->name;
-        $this->email = $user->email;
-        $this->role = $user->role;
-        $this->department_id = $user->department_id
-            ? (string) $user->department_id
-            : null;
-        $this->password = '';
-
-        $this->resetValidation();
-    }
-
     public function delete(int $id): void
     {
         abort_unless(auth()->user()->isAdmin(), 403);
 
         if ($id === auth()->id()) {
             $this->addError('delete', 'Vous ne pouvez pas supprimer votre propre compte.');
+
             return;
         }
 
-        User::findOrFail($id)->delete();
+        $user = User::findOrFail($id);
 
-        if ($this->editingId === $id) {
-            $this->resetForm();
-        }
+        // The reports are production history: they stay, with "Utilisateur supprimé" as author.
+        $reports = LaquageReport::query()->where('user_id', $user->id)->count();
 
-        session()->flash('success', 'Utilisateur supprimé avec succès.');
+        $user->delete();
+
+        session()->flash('success', match (true) {
+            $reports === 0 => 'Utilisateur supprimé avec succès.',
+            $reports === 1 => 'Utilisateur supprimé. Son rapport est conservé.',
+            default => "Utilisateur supprimé. Ses {$reports} rapports sont conservés.",
+        });
     }
 
-    public function resetForm(): void
-    {
-        $this->reset([
-            'name',
-            'email',
-            'password',
-            'department_id',
-            'editingId',
-        ]);
-
-        $this->role = 'department';
-        $this->resetValidation();
-    }
-
-    public function render()
+    public function render(): View
     {
         return view('components.admin.users.index', [
             'users' => User::with('department')
@@ -151,7 +62,6 @@ class Index extends Component
                 })
                 ->orderBy('name')
                 ->paginate(10),
-            'departments' => Department::orderBy('name')->get(),
         ]);
     }
 }

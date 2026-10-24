@@ -4,7 +4,10 @@ namespace App\Livewire\Departments\Laquage;
 
 use App\Models\LaquageReport;
 use App\Models\LaquageReportLine;
+use App\Support\LaquageFields;
 use Flux\Flux;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Title;
@@ -20,27 +23,25 @@ class ReportForm extends Component
     public ?int $reportId = null;
 
     public string $report_date = '';
+
     public string $line = '';
+
     public string $work_period = '';
+
     public string $operators = '';
+
     public string $micrometer_check = '';
+
     public string $brillometer = '';
+
     public string $phase = '';
+
     public string $furnace_temperature = '';
 
+    /** @var array<string, string> */
     public array $lineForm = [];
+
     public ?int $editingLineId = null;
-
-    public const HEADER_FIELDS = [
-        'report_date', 'line', 'work_period', 'operators',
-        'micrometer_check', 'brillometer', 'phase', 'furnace_temperature',
-    ];
-
-    public const ROW_FIELDS = [
-        'source_cart', 'order_number', 'of_number', 'reference', 'bars_count',
-        'cart_number', 'rejected', 'thickness_min', 'thickness_max', 'color',
-        'supplier', 'category', 'brilliance_average', 'aspect',
-    ];
 
     public function mount(?int $reportId = null): void
     {
@@ -56,7 +57,7 @@ class ReportForm extends Component
         $report = $this->visibleReports()->findOrFail($reportId);
         $this->reportId = $report->id;
 
-        foreach (self::HEADER_FIELDS as $field) {
+        foreach (LaquageFields::headerKeys() as $field) {
             $value = $report->{$field};
             $this->{$field} = $field === 'report_date'
                 ? $report->report_date->toDateString()
@@ -69,69 +70,19 @@ class ReportForm extends Component
         abort_unless(Auth::user()?->canAccessDepartment('laquage'), 403);
     }
 
-    private function visibleReports()
+    /**
+     * @return Builder<LaquageReport>
+     */
+    private function visibleReports(): Builder
     {
         return LaquageReport::query()->visibleTo(Auth::user());
     }
 
-    private function headerRules(): array
-    {
-        return [
-            'report_date' => ['required', 'date'],
-            'line' => ['nullable', 'string', 'max:255'],
-            'work_period' => ['nullable', 'string', 'max:255'],
-            'operators' => ['nullable', 'string', 'max:1000'],
-            'micrometer_check' => ['nullable', 'string', 'max:255'],
-            'brillometer' => ['nullable', 'numeric'],
-            'phase' => ['nullable', 'string', 'max:255'],
-            'furnace_temperature' => ['nullable', 'numeric'],
-        ];
-    }
-
-    private function rowRules(): array
-    {
-        return [
-            'lineForm.source_cart' => ['nullable', 'string', 'max:255'],
-            'lineForm.order_number' => ['nullable', 'string', 'max:255'],
-            'lineForm.of_number' => ['nullable', 'string', 'max:255'],
-            'lineForm.reference' => ['nullable', 'string', 'max:255'],
-            'lineForm.bars_count' => ['nullable', 'integer', 'min:0'],
-            'lineForm.cart_number' => ['nullable', 'string', 'max:255'],
-            'lineForm.rejected' => ['nullable', 'integer', 'min:0'],
-            'lineForm.thickness_min' => ['nullable', 'numeric'],
-            'lineForm.thickness_max' => ['nullable', 'numeric'],
-            'lineForm.color' => ['nullable', 'string', 'max:255'],
-            'lineForm.supplier' => ['nullable', 'string', 'max:255'],
-            'lineForm.category' => ['nullable', 'string', 'max:255'],
-            'lineForm.brilliance_average' => ['nullable', 'numeric'],
-            'lineForm.aspect' => ['nullable', 'string', 'max:255'],
-        ];
-    }
-
-    private function cleanHeader(array $validated): array
-    {
-        $header = [];
-        foreach (self::HEADER_FIELDS as $field) {
-            $value = $validated[$field] ?? null;
-            $header[$field] = $value === '' ? null : $value;
-        }
-
-        return $header;
-    }
-
-    private function cleanRow(array $source): array
-    {
-        $row = [];
-        foreach (self::ROW_FIELDS as $field) {
-            $value = $source[$field] ?? null;
-            $row[$field] = $value === '' ? null : $value;
-        }
-
-        return $row;
-    }
-
     /**
      * Crée le rapport s'il n'existe pas encore, sinon met à jour ses informations.
+     */
+    /**
+     * @param  array<string, mixed>  $header
      */
     private function persistHeader(array $header): LaquageReport
     {
@@ -159,10 +110,10 @@ class ReportForm extends Component
     {
         $this->authorizeDepartment();
 
-        $validated = $this->validate($this->headerRules());
+        $validated = $this->validate(LaquageFields::headerRules());
         $isNew = $this->reportId === null;
 
-        $this->persistHeader($this->cleanHeader($validated));
+        $this->persistHeader(LaquageFields::cleanHeader($validated));
 
         if ($isNew) {
             $this->afterFirstSave('Le rapport a été créé. Ajoutez maintenant vos lignes de production.');
@@ -177,8 +128,8 @@ class ReportForm extends Component
     {
         $this->authorizeDepartment();
 
-        $validated = $this->validate(array_merge($this->headerRules(), $this->rowRules()));
-        $row = $this->cleanRow($validated['lineForm'] ?? []);
+        $validated = $this->validate(array_merge(LaquageFields::headerRules(), LaquageFields::rowRules('lineForm.')));
+        $row = LaquageFields::cleanRow($validated['lineForm'] ?? []);
 
         // Chaque colonne est facultative, mais on évite d'enregistrer une ligne entièrement vide.
         if (collect($row)->every(fn ($value) => $value === null)) {
@@ -191,7 +142,7 @@ class ReportForm extends Component
         $isUpdate = $this->editingLineId !== null;
 
         DB::transaction(function () use ($validated, $row) {
-            $report = $this->persistHeader($this->cleanHeader($validated));
+            $report = $this->persistHeader(LaquageFields::cleanHeader($validated));
 
             if ($this->editingLineId !== null) {
                 $report->rows()->findOrFail($this->editingLineId)->update($row);
@@ -223,7 +174,7 @@ class ReportForm extends Component
 
         $this->resetErrorBag();
         $this->lineForm = [];
-        foreach (self::ROW_FIELDS as $field) {
+        foreach (LaquageFields::rowKeys() as $field) {
             $this->lineForm[$field] = (string) ($line->{$field} ?? '');
         }
         $this->editingLineId = $line->id;
@@ -256,10 +207,10 @@ class ReportForm extends Component
 
     private function resetLineForm(): void
     {
-        $this->lineForm = array_fill_keys(self::ROW_FIELDS, '');
+        $this->lineForm = LaquageFields::emptyRow();
     }
 
-    public function render()
+    public function render(): View
     {
         $rows = $this->reportId === null
             ? collect()

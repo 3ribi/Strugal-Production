@@ -84,16 +84,19 @@ class UiPagesTest extends TestCase
         $this->get(route('departments.laquage.index'))->assertForbidden();
     }
 
-    public function test_reports_list_filters_and_scopes_to_owner(): void
+    public function test_reports_list_is_shared_across_the_department_and_filters(): void
     {
         $owner = $this->makeUser('department', 'laquage');
-        $other = $this->makeUser('department', 'laquage');
+        $colleague = $this->makeUser('department', 'laquage');
         $this->makeReport($owner, ['line' => 'Ligne Alpha']);
-        $this->makeReport($other, ['line' => 'Ligne Beta']);
+        $this->makeReport($colleague, ['line' => 'Ligne Beta']);
 
         $this->actingAs($owner);
 
         Livewire::test(Reports::class)
+            ->assertSee('Ligne Alpha')
+            ->assertSee('Ligne Beta')
+            ->set('search', 'Alpha')
             ->assertSee('Ligne Alpha')
             ->assertDontSee('Ligne Beta')
             ->set('search', 'zzz')
@@ -108,7 +111,7 @@ class UiPagesTest extends TestCase
     public function test_report_detail_export_and_delete(): void
     {
         $owner = $this->makeUser('department', 'laquage');
-        $stranger = $this->makeUser('department', 'laquage');
+        $colleague = $this->makeUser('department', 'laquage');
         $report = $this->makeReport($owner);
 
         $this->actingAs($owner)->get(route('departments.laquage.show', $report->id))
@@ -118,8 +121,16 @@ class UiPagesTest extends TestCase
 
         $this->get(route('departments.laquage.export', $report->id))->assertOk();
 
-        $this->actingAs($stranger)->get(route('departments.laquage.show', $report->id))->assertNotFound();
-        $this->get(route('departments.laquage.export', $report->id))->assertNotFound();
+        // A colleague in the same department can open and export it too...
+        $this->actingAs($colleague)->get(route('departments.laquage.show', $report->id))->assertOk();
+        $this->get(route('departments.laquage.export', $report->id))->assertOk();
+
+        // ...but only the author (or an administrator) can delete it.
+        Livewire::actingAs($colleague)
+            ->test(ShowReport::class, ['reportId' => $report->id])
+            ->call('delete')
+            ->assertForbidden();
+        $this->assertDatabaseHas('laquage_reports', ['id' => $report->id]);
 
         Livewire::actingAs($owner)
             ->test(ShowReport::class, ['reportId' => $report->id])
@@ -164,8 +175,8 @@ class UiPagesTest extends TestCase
     {
         $this->get('/login')
             ->assertOk()
-            ->assertSee('Rapports de laquage, suivi des rejets')
-            ->assertSee('Se connecter');
+            ->assertSee('Se connecter')
+            ->assertSee('Mot de passe');
     }
 
     public function test_dashboard_embeds_chart_config(): void

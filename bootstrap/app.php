@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\AdminAccess;
+use App\Http\Middleware\DepartmentAccess;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,10 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        
+
         $middleware->alias([
-            'department' => \App\Http\Middleware\DepartmentAccess::class,
-            'admin' => \App\Http\Middleware\AdminAccess::class,
+            'department' => DepartmentAccess::class,
+            'admin' => AdminAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -23,4 +25,3 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
     })->create();
-    

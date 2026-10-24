@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\LaquageReport;
+use App\Support\LaquageFields;
+use DateTimeInterface;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -33,33 +36,17 @@ class LaquageExcelExporter
         $sheet->setTitle('Laquage');
         $spreadsheet->setActiveSheetIndex(0);
 
-        // Fill the header values in adjacent input cells without overwriting labels.
-        $sheet->setCellValue('B2', $report->line);
-        $sheet->setCellValue('D2', $report->work_period);
-        $sheet->setCellValue('F2', $report->operators);
-        $sheet->setCellValue('K2', $report->micrometer_check);
-        $sheet->setCellValue('B3', $report->report_date?->format('d/m/Y'));
-        $sheet->setCellValue('M2', $report->brillometer);
-        $sheet->setCellValue('O2', $report->phase);
-        $sheet->setCellValue('O3', $report->furnace_temperature);
+        // Fill the header values in the input cells next to the template labels.
+        foreach (LaquageFields::header() as $field => $definition) {
+            $value = $report->{$field};
+
+            $sheet->setCellValue(
+                $definition['excel'],
+                $value instanceof DateTimeInterface ? $value->format('d/m/Y') : $value
+            );
+        }
 
         $rows = $report->rows;
-
-        // Support older reports created before production rows were moved to their own table.
-        if ($rows->isEmpty()) {
-            $legacyFields = [
-                'source_cart', 'order_number', 'of_number', 'reference', 'bars_count',
-                'cart_number', 'rejected', 'thickness_min', 'thickness_max', 'color',
-                'supplier', 'category', 'brilliance_average', 'aspect',
-            ];
-            $legacyRow = [];
-            foreach ($legacyFields as $field) {
-                $legacyRow[$field] = $report->{$field};
-            }
-            if (collect($legacyRow)->contains(fn ($value) => $value !== null && $value !== '')) {
-                $rows = collect([(object) $legacyRow]);
-            }
-        }
 
         // The template has production rows 6-28. Extend the table before its footer if needed.
         $firstDataRow = 6;
@@ -69,35 +56,18 @@ class LaquageExcelExporter
         if ($extraRows > 0) {
             $sheet->insertNewRowBefore(29, $extraRows);
             for ($row = 29; $row < 29 + $extraRows; $row++) {
-                for ($column = 1; $column <= 14; $column++) {
-                    $letter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($column);
+                for ($column = 1; $column <= count(LaquageFields::row()); $column++) {
+                    $letter = Coordinate::stringFromColumnIndex($column);
                     $sheet->duplicateStyle($sheet->getStyle($letter.'28'), $letter.$row);
                 }
                 $sheet->getRowDimension($row)->setRowHeight($sheet->getRowDimension(28)->getRowHeight());
             }
         }
 
-        $columns = [
-            'A' => 'source_cart',
-            'B' => 'order_number',
-            'C' => 'of_number',
-            'D' => 'reference',
-            'E' => 'bars_count',
-            'F' => 'cart_number',
-            'G' => 'rejected',
-            'H' => 'thickness_min',
-            'I' => 'thickness_max',
-            'J' => 'color',
-            'K' => 'supplier',
-            'L' => 'category',
-            'M' => 'brilliance_average',
-            'N' => 'aspect',
-        ];
-
         foreach ($rows as $index => $productionRow) {
             $excelRow = $firstDataRow + $index;
-            foreach ($columns as $column => $field) {
-                $sheet->setCellValue($column.$excelRow, $productionRow->{$field} ?? null);
+            foreach (LaquageFields::row() as $field => $definition) {
+                $sheet->setCellValue($definition['excel'].$excelRow, $productionRow->{$field} ?? null);
             }
         }
 

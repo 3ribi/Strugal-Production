@@ -1,7 +1,7 @@
 <div class="mx-auto w-full max-w-full space-y-6">
     <x-ui.page-header
         title="Rapports Laquage"
-        :subtitle="$isAdmin ? 'Tous les rapports du département' : 'Vos rapports de production'"
+        subtitle="Tous les rapports du département"
     >
         <x-slot:actions>
             <flux:button variant="primary" icon="plus" :href="route('departments.laquage.create')" wire:navigate>
@@ -39,9 +39,7 @@
                         <th class="px-5 py-3 font-medium">Opérateurs</th>
                         <th class="px-5 py-3 text-center font-medium">Lignes</th>
                         <th class="px-5 py-3 text-center font-medium">Rejets</th>
-                        @if ($isAdmin)
-                            <th class="px-5 py-3 font-medium">Créé par</th>
-                        @endif
+                        <th class="px-5 py-3 font-medium">Créé par</th>
                         <th class="px-5 py-3 text-right font-medium">Actions</th>
                     </tr>
                 </thead>
@@ -66,28 +64,28 @@
                                     <span class="text-gray-400">0</span>
                                 @endif
                             </td>
-                            @if ($isAdmin)
-                                <td class="px-5 py-3.5 text-gray-700 dark:text-gray-200">{{ $report->user?->name ?? '—' }}</td>
-                            @endif
+                            <td class="px-5 py-3.5 text-gray-700 dark:text-gray-200">{{ $report->authorName() }}</td>
                             <td class="whitespace-nowrap px-5 py-3.5 text-right">
                                 <flux:button size="sm" variant="ghost" icon="eye" :href="route('departments.laquage.show', $report->id)" wire:navigate inset="top bottom" title="Voir" />
                                 <flux:button size="sm" variant="ghost" icon="pencil-square" :href="route('departments.laquage.edit', $report->id)" wire:navigate inset="top bottom" title="Modifier" />
                                 <flux:button size="sm" variant="ghost" icon="arrow-down-tray" :href="route('departments.laquage.export', $report->id)" inset="top bottom" title="Télécharger Excel" />
-                                <flux:button
-                                    size="sm"
-                                    variant="ghost"
-                                    icon="trash"
-                                    inset="top bottom"
-                                    title="Supprimer"
-                                    class="text-error-600! hover:text-error-700!"
-                                    wire:click="delete({{ $report->id }})"
-                                    wire:confirm="Supprimer ce rapport et toutes ses lignes de production ?"
-                                />
+                                @if ($report->canBeDeletedBy($authUser))
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        icon="trash"
+                                        inset="top bottom"
+                                        title="Supprimer"
+                                        class="text-error-600! hover:text-error-700!"
+                                        wire:click="delete({{ $report->id }})"
+                                        wire:confirm="Supprimer ce rapport et toutes ses lignes de production ?"
+                                    />
+                                @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $isAdmin ? 8 : 7 }}" class="px-5 py-16 text-center">
+                            <td colspan="8" class="px-5 py-16 text-center">
                                 <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
                                     <flux:icon name="clipboard-document-list" class="size-8 text-gray-400" />
                                     <p class="font-medium text-gray-900 dark:text-white">

@@ -1,33 +1,20 @@
 @php
-    $header = [
-        'Ligne de laquage' => $report->line,
-        'Période de travail' => $report->work_period,
-        'Opérateurs' => $report->operators,
-        'Vérification micromètre' => $report->micrometer_check,
-        'Brillomètre' => $report->brillometer,
-        'Phase' => $report->phase,
-        'Température du four' => $report->furnace_temperature !== null && $report->furnace_temperature !== ''
-            ? $report->furnace_temperature.' °C'
-            : null,
-        'Créé par' => $report->user?->name,
-    ];
+    use App\Support\LaquageFields;
 
-    $columns = [
-        'source_cart' => 'Nº CHAR. SOURCE',
-        'order_number' => 'COMMANDE',
-        'of_number' => 'O.F',
-        'reference' => 'RÉFÉRENCE',
-        'bars_count' => 'Nº BARRES',
-        'cart_number' => 'Nº CHAR',
-        'rejected' => 'REJET',
-        'thickness_min' => 'MIN.',
-        'thickness_max' => 'MAX.',
-        'color' => 'COULEUR',
-        'supplier' => 'FOURNISSEUR',
-        'category' => 'CAT.',
-        'brilliance_average' => 'MOYENNE',
-        'aspect' => 'ASPECT',
-    ];
+    $header = [];
+    foreach (LaquageFields::header() as $field => $definition) {
+        if ($field === 'report_date') {
+            continue; // shown in the page title
+        }
+
+        $value = $report->{$field};
+        $header[$definition['label']] = isset($definition['unit']) && filled($value)
+            ? $value.' '.$definition['unit']
+            : $value;
+    }
+    $header['Créé par'] = $report->authorName();
+
+    $columns = collect(LaquageFields::row())->map(fn ($f) => $f['label'])->all();
 @endphp
 
 <div class="mx-auto w-full max-w-full space-y-6">
@@ -42,14 +29,16 @@
             <flux:button icon="pencil-square" :href="route('departments.laquage.edit', $report->id)" wire:navigate>
                 Modifier
             </flux:button>
-            <flux:button
-                variant="danger"
-                icon="trash"
-                wire:click="delete"
-                wire:confirm="Supprimer ce rapport et toutes ses lignes de production ?"
-            >
-                Supprimer
-            </flux:button>
+            @if ($canDelete)
+                <flux:button
+                    variant="danger"
+                    icon="trash"
+                    wire:click="delete"
+                    wire:confirm="Supprimer ce rapport et toutes ses lignes de production ?"
+                >
+                    Supprimer
+                </flux:button>
+            @endif
             <flux:button variant="primary" icon="arrow-down-tray" :href="route('departments.laquage.export', $report->id)">
                 Télécharger Excel
             </flux:button>

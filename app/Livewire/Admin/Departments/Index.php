@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Departments;
 
 use App\Models\Department;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -39,6 +40,7 @@ class Index extends Component
 
         if ($department->users()->exists()) {
             $this->addError('name', 'Impossible de supprimer un département auquel des utilisateurs sont rattachés.');
+
             return;
         }
 
@@ -47,7 +49,7 @@ class Index extends Component
         session()->flash('success', 'Département supprimé avec succès.');
     }
 
-    public function render()
+    public function render(): View
     {
         return view('components.admin.departments.index', [
             'departments' => Department::withCount('users')

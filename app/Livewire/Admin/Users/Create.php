@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Admin\Users;
 
+use App\Concerns\PasswordValidationRules;
 use App\Models\Department;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
@@ -12,17 +14,24 @@ use Livewire\Component;
 #[Title('Nouvel utilisateur')]
 class Create extends Component
 {
+    use PasswordValidationRules;
+
     public string $name = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public ?string $departmentId = null;
 
     public function createUser(): void
     {
+        abort_unless(auth()->user()?->isAdmin(), 403);
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:12'],
+            'password' => $this->assignedPasswordRules(),
             'departmentId' => [
                 'required',
                 'integer',
@@ -43,7 +52,7 @@ class Create extends Component
         $this->redirectRoute('admin.users.index');
     }
 
-    public function render()
+    public function render(): View
     {
         return view('components.admin.users.create', [
             'departments' => Department::orderBy('name')->get(),

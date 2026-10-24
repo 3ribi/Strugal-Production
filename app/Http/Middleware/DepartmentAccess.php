@@ -15,7 +15,7 @@ class DepartmentAccess
     ): Response {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             abort(403);
         }
 
@@ -25,7 +25,7 @@ class DepartmentAccess
         }
 
         // Department user must belong to a department
-        if (!$user->department) {
+        if (! $user->department) {
             abort(403);
         }
 

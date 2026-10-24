@@ -9,12 +9,12 @@ class DepartmentSeeder extends Seeder
 {
     public function run(): void
     {
-        \App\Models\Department::updateOrCreate(
+        Department::updateOrCreate(
             ['slug' => 'laquage'],
             ['name' => 'Laquage']
         );
 
-        \App\Models\Department::updateOrCreate(
+        Department::updateOrCreate(
             ['slug' => 'emballage'],
             ['name' => 'Emballage']
         );

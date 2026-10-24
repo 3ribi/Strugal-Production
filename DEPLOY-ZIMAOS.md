@@ -7,7 +7,7 @@ ZimaOS exécute les applications avec Docker. Ce projet est fourni avec un `Dock
 2. Ouvrez `docker-compose.yml` et modifiez :
    - `APP_URL` : l'adresse que vous taperez dans le navigateur (ex. `http://192.168.1.50:8088`),
    - `ADMIN_EMAIL` / `ADMIN_PASSWORD` : le premier compte administrateur,
-   - `APP_TIMEZONE` : votre fuseau horaire (ex. `Africa/Casablanca`).
+   - `APP_TIMEZONE` : votre fuseau horaire (par défaut `Africa/Casablanca`).
 
 ## 2. Copier le projet sur ZimaOS
 Envoyez le dossier du projet vers le serveur (application Fichiers ou partage réseau), par exemple dans `/DATA/AppData/strugal-src`.

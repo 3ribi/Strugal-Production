@@ -10,6 +10,15 @@
             <flux:input wire:model="name" label="Nom complet" required />
             <flux:input wire:model="email" type="email" label="Adresse e-mail" required />
 
+            <flux:input
+                wire:model="password"
+                type="password"
+                label="Nouveau mot de passe"
+                description:trailing="Facultatif — laissez vide pour ne pas le changer. 12 caractères minimum."
+                viewable
+                autocomplete="new-password"
+            />
+
             @if ($user->role === 'department')
                 <flux:select wire:model="department_id" label="Département" placeholder="Choisir un département">
                     @foreach ($departments as $department)
