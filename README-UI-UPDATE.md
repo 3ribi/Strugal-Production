@@ -2,7 +2,10 @@
 
 Copiez ces fichiers par-dessus votre projet (mêmes chemins), en gardant votre `.env` et votre base de données.
 
-1. **Supprimez** l'ancien fichier `resources/views/dashboard.blade.php` (remplacé par un composant Livewire).
+1. **Supprimez** ces anciens fichiers (remplacés) :
+   - `resources/views/dashboard.blade.php`
+   - `app/Livewire/Departments/Laquage/CreateReport.php`
+   - `resources/views/components/departments/laquage/create-report.blade.php`
 2. Dans votre `.env`, mettez : `APP_LOCALE=fr`, `APP_FALLBACK_LOCALE=fr`, `APP_NAME="Strugal Production"`.
 3. Lancez :
 

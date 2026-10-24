@@ -21,7 +21,7 @@
             'icon' => 'clipboard-document-list',
             'active' => ['departments.laquage.*'],
             'children' => [
-                ['name' => 'Rapports', 'route' => 'departments.laquage.index', 'active' => ['departments.laquage.index', 'departments.laquage.show']],
+                ['name' => 'Rapports', 'route' => 'departments.laquage.index', 'active' => ['departments.laquage.index', 'departments.laquage.show', 'departments.laquage.edit']],
                 ['name' => 'Nouveau rapport', 'route' => 'departments.laquage.create', 'active' => ['departments.laquage.create']],
             ],
         ];

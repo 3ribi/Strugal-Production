@@ -39,6 +39,9 @@
             <flux:button variant="ghost" icon="arrow-left" :href="route('departments.laquage.index')" wire:navigate>
                 Retour
             </flux:button>
+            <flux:button icon="pencil-square" :href="route('departments.laquage.edit', $report->id)" wire:navigate>
+                Modifier
+            </flux:button>
             <flux:button
                 variant="danger"
                 icon="trash"

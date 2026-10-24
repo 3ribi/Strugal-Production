@@ -71,6 +71,7 @@
                             @endif
                             <td class="whitespace-nowrap px-5 py-3.5 text-right">
                                 <flux:button size="sm" variant="ghost" icon="eye" :href="route('departments.laquage.show', $report->id)" wire:navigate inset="top bottom" title="Voir" />
+                                <flux:button size="sm" variant="ghost" icon="pencil-square" :href="route('departments.laquage.edit', $report->id)" wire:navigate inset="top bottom" title="Modifier" />
                                 <flux:button size="sm" variant="ghost" icon="arrow-down-tray" :href="route('departments.laquage.export', $report->id)" inset="top bottom" title="Télécharger Excel" />
                                 <flux:button
                                     size="sm"

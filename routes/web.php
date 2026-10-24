@@ -6,7 +6,7 @@ use App\Livewire\Admin\Users\Create as CreateUser;
 use App\Livewire\Admin\Users\Edit as UsersEdit;
 use App\Livewire\Admin\Users\Index as UsersIndex;
 use App\Livewire\Dashboard;
-use App\Livewire\Departments\Laquage\CreateReport;
+use App\Livewire\Departments\Laquage\ReportForm;
 use App\Livewire\Departments\Laquage\Reports;
 use App\Livewire\Departments\Laquage\ShowReport;
 use Illuminate\Support\Facades\Route;
@@ -27,7 +27,8 @@ Route::middleware(['auth', 'department:laquage'])
     ->name('departments.laquage.')
     ->group(function () {
         Route::get('rapports', Reports::class)->name('index');
-        Route::get('rapports/nouveau', CreateReport::class)->name('create');
+        Route::get('rapports/nouveau', ReportForm::class)->name('create');
+        Route::get('rapports/{reportId}/modifier', ReportForm::class)->whereNumber('reportId')->name('edit');
         Route::get('rapports/{reportId}', ShowReport::class)->whereNumber('reportId')->name('show');
         Route::get('rapports/{report}/excel', LaquageReportExportController::class)
             ->whereNumber('report')
