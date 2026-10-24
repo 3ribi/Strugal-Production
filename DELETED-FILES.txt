@@ -1,0 +1,22 @@
+Files removed from the project in this update (dead code and duplicates).
+If you copy this zip OVER your existing project, delete these files too.
+If you extract into a fresh folder, ignore this file and delete it.
+
+app/Livewire/Departments/Laquage/CreateReport.php
+app/templates/departments.xlsx
+resources/views/components/app-logo-icon.blade.php
+resources/views/components/app-logo.blade.php
+resources/views/components/departments/laquage/create-report.blade.php
+resources/views/components/desktop-user-menu.blade.php
+resources/views/components/placeholder-pattern.blade.php
+resources/views/dashboard.blade.php
+resources/views/flux/icon/book-open-text.blade.php
+resources/views/flux/icon/chevrons-up-down.blade.php
+resources/views/flux/icon/folder-git-2.blade.php
+resources/views/flux/icon/layout-grid.blade.php
+resources/views/flux/navlist/group.blade.php
+resources/views/layouts/app/header.blade.php
+resources/views/layouts/app/sidebar.blade.php
+resources/views/layouts/auth/card.blade.php
+resources/views/layouts/auth/simple.blade.php
+resources/views/layouts/auth/split.blade.php
